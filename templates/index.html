@@ -1,0 +1,124 @@
+<!-- prettier-ignore -->
+{% extends 'base.html' %}
+<!-- prettier-ignore -->
+{% block title %} {{ title }} {% endblock %}
+{% block headers %}
+<script type="module">
+  import React from "https://cdn.skypack.dev/react";
+  import ReactDOM from "https://cdn.skypack.dev/react-dom";
+  import htm from "https://cdn.skypack.dev/htm";
+  import axios from "https://cdn.skypack.dev/axios";
+  import { io } from "https://cdn.socket.io/4.4.1/socket.io.esm.min.js";
+  (() => {
+    const Index = () => {
+      const html = htm.bind(React.createElement);
+      const [socket, setSocket] = React.useState(null);
+      const [response, setResponse] = React.useState([]);
+      const [inputValue, setInputValue] = React.useState("");
+      const [error, setError] = React.useState("");
+      const [isLoading, setIsLoading] = React.useState(false);
+      const [startTime, setStartTime] = React.useState(null);
+      const [elapsedTime, setElapsedTime] = React.useState(null);
+      const timer = React.useRef(null);
+
+      React.useEffect(() => {
+        if (startTime) {
+          timer.current = setInterval(() => {
+            const elapsed = new Date() - startTime;
+            setElapsedTime(elapsed);
+          }, 1000);
+        }
+        return () => {
+          clearInterval(timer.current);
+        };
+      }, [startTime]);
+
+      React.useEffect(() => {
+        const sock = io.connect(
+          "http://" + document.domain + ":" + location.port
+        );
+        setSocket(sock);
+        sock.on("response", function (res) {
+          if (!["\n", " ", ""].includes(res.message)) {
+            setResponse((response) => [...response, res]);
+          }
+        });
+        sock.on("streaming_status", function (res) {
+          setIsLoading(res === "streaming");
+          if (res === "not_streaming") {
+            setInputValue("");
+            clearInterval(timer.current);
+          }
+        });
+        return () => {
+          sock.disconnect();
+        };
+      }, []);
+
+      const queryModel = () => {
+        if (inputValue.length > 0) {
+          socket.emit("message", { query: inputValue });
+          setStartTime(new Date());
+        } else {
+          setError("Input cannot be blank");
+        }
+        setResponse([]);
+      };
+
+      const handleInputChange = (e) => {
+        setInputValue(e.target.value);
+      };
+
+      return html` <section class="container mx-auto px-4 mt-24">
+        <div class="flex flex-col items-center justify-center">
+          <div
+            className=${`w-16 h-16 mb-10 ${
+              isLoading && "border-t-4"
+            } border-blue-500 border-solid rounded-full animate-spin`}
+          ></div>
+          ${elapsedTime &&
+          html`<p>${Math.round(elapsedTime / 1000)} seconds elapsed</p>`}
+          <input
+            required="required"
+            type="text"
+            name="query"
+            value=${inputValue}
+            onChange=${handleInputChange}
+            placeholder="What is the Metaverse ?"
+            class="block bg-white w-full border border-slate-300 rounded-md py-2 px-4 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1"
+          />
+          <button
+            disabled=${isLoading}
+            onClick=${queryModel}
+            class=${`${
+              isLoading
+                ? "bg-gray-100 cursor-not-allowed"
+                : "bg-teal-700 text-white"
+            } my-8 py-4 px-9 rounded-md border`}
+          >
+            Query Model
+          </button>
+          ${error.length > 0 &&
+          html`
+            <p class="p-10 bg-red-200 rounded-xl text-center">${error}</p>
+          `}
+          ${response.length > 0 &&
+          html`
+            <p class="p-10 bg-sky-100 rounded-xl text-center">
+              ${response.map((item) => item.message).join(" ")}
+            </p>
+          `}
+        </div>
+      </section>`;
+    };
+    ReactDOM.render(
+      React.createElement(Index),
+      document.getElementById("root")
+    );
+  })();
+</script>
+{% endblock %}
+<!-- prettier-ignore -->
+{% block content %}
+<div id="root"></div>
+{% endblock %}
