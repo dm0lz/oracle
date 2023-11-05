@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "oracle"
 version = "0.1.0"
-description = ""
+description = "LLM App"
 authors = ["Olivier <ducrouxolivier@gmail.com>"]
 readme = "README.md"
 
@@ -15,7 +15,8 @@ flask = "^3.0.0"
 ipdb = "^0.13.13"
 transformers = "^4.35.0"
 huggingface-hub = "0.16.4"
-
+beautifulsoup4 = "^4.12.2"
+paramiko = "^3.3.1"
 
 [build-system]
 requires = ["poetry-core"]
