@@ -26,7 +26,7 @@ ssh.exec_command(f"cd {folder_name} && ./server_setup.sh")
 ssh.exec_command(f"cd {folder_name} && pip3 install .")
 
 ssh.exec_command(f"cd {folder_name} && nohup python3 store.py &>/dev/null &")
-ssh.exec_command(f"cd {folder_name} && sleep 240 && nohup python3 main.py > logs.log 2>&1 &")
+ssh.exec_command(f"cd {folder_name} && sleep 240 && nohup python3 production.py > logs.log 2>&1 &")
 
 os.remove(zip_filename)
 ssh.close()
