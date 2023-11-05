@@ -7,7 +7,6 @@ sudo apt install -y unzip
 if [ -f /swapfile ]; then
   echo "The swap file /swapfile exists."
 else
-  echo "The swap file /swapfile does not exist."
   sudo fallocate -l 24G /swapfile
   sudo chmod 600 /swapfile
   sudo mkswap /swapfile
