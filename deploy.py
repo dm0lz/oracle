@@ -22,7 +22,11 @@ scp.close()
 
 folder_name = zip_filename.split('.')[0]
 ssh.exec_command(f"unzip {zip_filename} -d {folder_name} && rm {zip_filename}")
+ssh.exec_command(f"cd {folder_name} && ./server_setup.sh")
 ssh.exec_command(f"cd {folder_name} && pip3 install .")
+
+ssh.exec_command(f"cd {folder_name} && nohup python3 store.py &>/dev/null &")
+ssh.exec_command(f"cd {folder_name} && sleep 240 && nohup python3 main.py > logs.log 2>&1 &")
 
 os.remove(zip_filename)
 ssh.close()
